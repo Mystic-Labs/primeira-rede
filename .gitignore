@@ -99,3 +99,12 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+#vs CODE IDE
+.vscode/
+./vscode/*
+
+
+
+#dados .gz
+*.gz

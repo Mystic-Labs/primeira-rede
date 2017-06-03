@@ -12,14 +12,14 @@ def bias_variable(shape):
 
 x = tf.placeholder(tf.float32, shape=[None, 784]) # definicao do input
 y_ = tf.placeholder(tf.float32, shape=[None, 10])#deficao de output para sistema com 10 simbulos
-W = tf.Variable(tf.zeros([784,10]))#definição de pesos
-b = tf.Variable(tf.zeros([10]))# definicao de bia ou vies sei lá
+W = tf.Variable(tf.zeros([784,10]))#definicao de pesos
+b = tf.Variable(tf.zeros([10]))# definicao de bia ou vies sei la
 sess.run(tf.global_variables_initializer())
-y = tf.matmul(x,W) + b #rede neural em si é so isso mesmo esse modelo
+y = tf.matmul(x,W) + b #rede neural em si e so isso mesmo esse modelo
 cross_entropy = tf.reduce_mean(
     tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
-train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)//definicao de otimizador ,taxa de aprendizado
-for _ in range(1000)://quantidade de treinos
+train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)#definicao de otimizador ,taxa de aprendizado
+for _ in range(1000):#quantidade de treinos
   batch = mnist.train.next_batch(100) # lote de treino
   train_step.run(feed_dict={x: batch[0], y_: batch[1]})#treino em si
 correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1)) #
