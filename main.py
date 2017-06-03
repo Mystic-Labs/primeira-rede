@@ -11,7 +11,7 @@ def bias_variable(shape):
   return tf.Variable(initial)
 
 x = tf.placeholder(tf.float32, shape=[None, 784]) # definicao do input
-y_ = tf.placeholder(tf.float32, shape=[None, 10])#deficao de output para sistema com 10 simbulos
+y_ = tf.placeholder(tf.float32, shape=[None, 10])#deficao de output para sistema com 10 simbolos
 W = tf.Variable(tf.zeros([784,10]))#definicao de pesos
 b = tf.Variable(tf.zeros([10]))# definicao de bia ou vies sei la
 sess.run(tf.global_variables_initializer())
