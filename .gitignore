@@ -107,4 +107,4 @@ ENV/
 
 
 #dados .gz
-*.gz
+/MNIST_data
