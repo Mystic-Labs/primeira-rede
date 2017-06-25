@@ -1,5 +1,5 @@
-from tensorflow.examples.tutorials.mnist import input_data #substituir por um open("entrada.csv",'r')
-mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+arq=("train.csv",'r')
+
 import tensorflow as tf
 sess = tf.InteractiveSession()
 def weight_variable(shape):
