@@ -23,10 +23,7 @@ labels = labels.astype(np.uint8)
 dataTE = pd.read_csv('test.csv')
 images2 = dataTE.iloc[:,0:].values
 images2 = images2.astype(np.float)
-labels_flat2 = dataTE.iloc[:,0].values
-labels2 = dense_to_one_hot(labels_flat2, 10)
-labels2 = labels2.astype(np.uint8)
-index = 0
+
 sess = tf.InteractiveSession()
 def weight_variable(shape):
   initial = tf.truncated_normal(shape, stddev=0.1)
@@ -37,10 +34,12 @@ def bias_variable(shape):
   return tf.Variable(initial)
 
 
-    
+index =0   
 def lote(batch):
+  global index
   imas=images[index:index+batch]
   hotVect= labels[index:index+batch]
+  index=index+batch
   return imas,hotVect  
 
 x = tf.placeholder(tf.float32, shape=[None, 784]) # definicao do input
@@ -57,4 +56,12 @@ for _ in range(1000):#quantidade de treinos
   train_step.run(feed_dict={x: batch[0], y_: batch[1]})#treino em si
 correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1)) #
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-print(accuracy.eval(feed_dict={x: images[10001:15555], y_: labels[10001:15555]}))
+predict = tf.argmax(y,1)
+#print(accuracy.eval(feed_dict={x: images[10001:15555], y_: labels[10001:15555]}))
+res=predict.eval(feed_dict={x: images2})
+np.savetxt('submission_softmax.csv', 
+           np.c_[range(1,len(images2)+1),res], 
+           delimiter=',', 
+           header = 'ImageId,Label', 
+           comments = '', 
+           fmt='%d')
