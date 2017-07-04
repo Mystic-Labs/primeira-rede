@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 
@@ -23,38 +22,87 @@ labels = labels.astype(np.uint8)
 dataTE = pd.read_csv('test.csv')
 images2 = dataTE.iloc[:,0:].values
 images2 = images2.astype(np.float)
-labels_flat2 = dataTE.iloc[:,0].values
-labels2 = dense_to_one_hot(labels_flat2, 10)
-labels2 = labels2.astype(np.uint8)
-index = 0
+
 sess = tf.InteractiveSession()
 def weight_variable(shape):
-  initial = tf.truncated_normal(shape, stddev=0.1)
-  return tf.Variable(initial)
+    initial = tf.truncated_normal(shape, stddev=0.1)
+    return tf.Variable(initial)
 
 def bias_variable(shape):
-  initial = tf.constant(0.1, shape=shape)
-  return tf.Variable(initial)
+    initial = tf.constant(0.1, shape=shape)
+    return tf.Variable(initial)
 
 
-    
+index =0   
 def lote(batch):
-  imas=images[index:index+batch]
-  hotVect= labels[index:index+batch]
-  return imas,hotVect  
+    global index
+    imas=images[index:index+batch]
+    hotVect= labels[index:index+batch]
+    index=index+batch
+    return imas,hotVect  
 
-x = tf.placeholder(tf.float32, shape=[None, 784]) # definicao do input
-y_ = tf.placeholder(tf.float32, shape=[None, 10])#deficao de output para sistema com 10 simbolos
-W = tf.Variable(tf.zeros([784,10]))#definicao de pesos
-b = tf.Variable(tf.zeros([10]))# definicao de bia ou vies sei la
+with tf.name_scope("entrada"):
+    x = tf.placeholder(tf.float32, shape=[None, 784]) # definicao do input
+
+with tf.name_scope("saida"):
+    y_ = tf.placeholder(tf.float32, shape=[None, 10])#deficao de output para sistema com 10 simbolos
+
+with tf.name_scope("pesos"):
+    W = tf.Variable(tf.zeros([784,10]))#definicao de pesos
+
+with tf.name_scope("bias"):
+    b = tf.Variable(tf.zeros([10]))# definicao de bia ou vies sei la
+
+
+merged = tf.summary.merge_all()
+
+sess = tf.Session()
+
+train_writer = tf.summary.FileWriter('/tmp/tensorflow' + '/train',sess.graph)
+test_writer = tf.summary.FileWriter('/tmp/tensorflow' + '/test',sess.graph)
+
 sess.run(tf.global_variables_initializer())
+
 y = tf.matmul(x,W) + b #rede neural em si e so isso mesmo esse modelo
-cross_entropy = tf.reduce_mean(
-    tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
-train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)#definicao de otimizador ,taxa de aprendizado
-for _ in range(1000):#quantidade de treinos
-  batch =lote(100) # lote de treino/ prepara uma imagem em vetor e um vetor de 10 posicees pra cada caso de treino
-  train_step.run(feed_dict={x: batch[0], y_: batch[1]})#treino em si
+with tf.name_scope('total'):
+    cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
+    tf.summary.scalar('cross_entropy', cross_entropy)
+
+with tf.name_scope('treino'):
+    train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)#definicao de otimizador ,taxa de aprendizado
+
+
+
+#with tf.name_scope('correct_prediction'):
+correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+#    tf.summary.scalar('correct predicion',correct_prediction)
+# with tf.name_scope('accuracy'):
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    # tf.summary.scalar('accuracy', accuracy)
+
+
+#inicia o treino:
+for i in range(1000):#quantidade de treinos
+    batch =lote(100) # lote de treino/ prepara uma imagem em vetor e um vetor de 10 posicees pra cada caso de treino
+    ##print("acuracia no passo %s eh: %s "%(_,accuracy)
+    feed_dict = {x: batch[0], y_: batch[1]}
+    sumario, acc = train_step.run([merged,accuracy],feed_dict)#treino em si
+    # a cada 10 em 10, grava no grafico de teste
+    if i % 10 == 0:
+        test_writer.add_summary(sumario,i)
+        print('Accuracy at step %s: %s' % (i, acc))
+    else:
+        train_writer.add_summary(sumario,i)
+
+
 correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1)) #
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-print(accuracy.eval(feed_dict={x: images[10001:15555], y_: labels[10001:15555]}))
+predict = tf.argmax(y,1)
+#print(accuracy.eval(feed_dict={x: images[10001:15555], y_: labels[10001:15555]}))
+res=predict.eval(feed_dict={x: images2})
+np.savetxt('submission_softmax.csv', 
+           np.c_[range(1,len(images2)+1),res], 
+           delimiter=',', 
+           header = 'ImageId,Label', 
+           comments = '', 
+           fmt='%d')
