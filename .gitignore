@@ -108,3 +108,5 @@ ENV/
 
 #dados .gz
 /MNIST_data
+
+\.idea/
